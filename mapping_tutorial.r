@@ -1,5 +1,5 @@
 
-setwd("/home/spnichol/Dropbox/mapping_tutorial")
+setwd("/home/you/mapping_tutorial")
 #install neccesary packages 
 install.packages(c("cartography", "rgdal", "sp"))
 
@@ -84,7 +84,7 @@ names(pluto_bk)
 pluto_bk <- pluto_bk[, c(5, 2)]
 nrow(bldg_counts)
 
-bldg_counts <- merge(x=bldg_counts, y=pluto_bk1, by="BBL")
+bldg_counts <- merge(x=bldg_counts, y=pluto_bk, by="BBL")
 nrow(bldg_counts)
 
 
@@ -121,7 +121,7 @@ choroLayer(spdf = bk_shape,
            add = TRUE) 
 
 layoutLayer(title = "Census Tracts by Building Ownership Concentration", 
-            author = "Pres Nichols",  
+            author = "YourName",  
             sources = "Source: NYC OpenData", 
             scale = NULL, 
             col = NA, 
