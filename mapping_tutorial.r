@@ -1,7 +1,7 @@
 
 setwd("/home/spnichol/Dropbox/mapping_tutorial")
 #install neccesary packages 
-install.packages(c("cartography", "rgdal", "stringr"))
+install.packages(c("cartography", "rgdal", "sp"))
 
 library(cartography) #read in map-making package
 library(rgdal) #read in general GIS package 
@@ -9,9 +9,9 @@ library(stringr) #read in string manipulation package
 
 
 #ownership registrations 
-owners <- read.csv("owners.csv")
+owners <- read.csv("data/owners.csv")
 #building data 
-bldgs <- read.csv("bldg.csv")
+bldgs <- read.csv("data/bldg.csv")
 
 head(owners)
 
@@ -62,7 +62,7 @@ bldg_counts <- bldg_counts[! is.na(bldg_counts$Building_Count) ,]
 head(bldg_counts)
 
 
-pluto_bk <- read.csv("pluto.csv")
+pluto_bk <- read.csv("data/pluto.csv")
 names(pluto_bk)
 
 pluto_bk <- pluto_bk[, c(4, 5, 6, 58,71, 73, 74, 75)]
@@ -87,10 +87,45 @@ nrow(bldg_counts)
 bldg_counts <- merge(x=bldg_counts, y=pluto_bk1, by="BBL")
 nrow(bldg_counts)
 
-#aggregate by census tract 
-over_one <- bldg_counts[bldg_counts$Building_Count > 2 ,]
-tract_counts <- aggregate(Building_Count ~ CT2010, data=over_one, FUN=length )
+
+multiple <- bldg_counts[bldg_counts$Building_Count > 2 ,]
+tract_counts <- aggregate(Building_Count ~ CT2010, data=multiple, FUN=length )
+names(tract_counts)[1] <- "CTLabel"
 nrow(tract_counts)
 length(unique(pluto_bk$CT2010))
 
-names(tract_counts)[1] <- "NAME10"
+bk_shape <- readOGR(dsn = "shapefiles", layer = "nyct2010")
+bk_shape <- bk_shape[bk_shape@data$BoroCode == "3" ,]
+head(tract_counts)
+
+require(sp)
+bk_shape <- merge(bk_shape, tract_counts, by="CTLabel")
+
+head(bk_shape@data)
+
+
+plot(bk_shape, border = NA, col = NA, bg = "#A6CAE0")
+plot(bk_shape, col  = "#E3DEBF", border=NA, add=TRUE)
+
+cols <- carto.pal(pal1 = "green.pal" ,n1 = 8)
+choroLayer(spdf = bk_shape, 
+           df = bk_shape@data, 
+           var = "Building_Count", 
+           breaks = c(0, 10, 30, 50, 70, 90, 120, 150), 
+           col = cols, 
+           border = "grey40", 
+           lwd = 0.5, 
+           legend.pos = "left",
+           legend.title.txt = "Number of Buildings", 
+           legend.values.rnd = 10,
+           add = TRUE) 
+
+layoutLayer(title = "Census Tracts by Building Ownership Concentration", 
+            author = "Pres Nichols",  
+            sources = "Source: NYC OpenData", 
+            scale = NULL, 
+            col = NA, 
+            coltitle = "black", 
+            frame = FALSE,  
+            bg = NA)
+
