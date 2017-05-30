@@ -58,3 +58,39 @@ head(bldgs)
 bldg_counts <- merge(x=bldgs, y=owners, by="RegistrationID")
 
 bldg_counts <- bldg_counts[! is.na(bldg_counts$Building_Count) ,]
+
+head(bldg_counts)
+
+
+pluto_bk <- read.csv("pluto.csv")
+names(pluto_bk)
+
+pluto_bk <- pluto_bk[, c(4, 5, 6, 58,71, 73, 74, 75)]
+names(pluto_bk)
+
+#subset dataframe for just Brooklyn 
+bldg_counts  <- bldg_counts [bldg_counts $BoroID == 3 ,]
+
+#create new columns with padded values 
+bldg_counts ["New_Block"] <- lapply(bldg_counts ["Block"], function(x) sprintf("%05d", x))
+bldg_counts ["New_Lot"] <- lapply(bldg_counts ["Lot"], function(x) sprintf("%04d", x))
+
+#use paste function to combine everything into one variable 
+bldg_counts ["BBL"] <- as.numeric(paste(bldg_counts $BoroID, bldg_counts $New_Block, bldg_counts $New_Lot, sep=""))
+
+head(bldg_counts$BBL, n=15)
+
+names(pluto_bk)
+pluto_bk <- pluto_bk[, c(5, 2)]
+nrow(bldg_counts)
+
+bldg_counts <- merge(x=bldg_counts, y=pluto_bk1, by="BBL")
+nrow(bldg_counts)
+
+#aggregate by census tract 
+over_one <- bldg_counts[bldg_counts$Building_Count > 2 ,]
+tract_counts <- aggregate(Building_Count ~ CT2010, data=over_one, FUN=length )
+nrow(tract_counts)
+length(unique(pluto_bk$CT2010))
+
+names(tract_counts)[1] <- "NAME10"
